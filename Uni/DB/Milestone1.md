@@ -11,9 +11,15 @@
 
 - Detail flow of the structure modification (split, merge)
 
-    -
+    - [Split](#151-split)
+
+    - [Merge](#152-merge)
 
 - (Naïve) designs or required changes for building on-disk b+ tree
+
+    - [Designs](#31-designs)
+
+    - [Merge](#32-required-changes)
 
 # 목차 
 
@@ -167,7 +173,7 @@ void find_and_print_range(node * root, int key_start, intkey_end, bool verbose) 
   
     5. 적절히 split 후 insert_into_parent() 호출
         - parent가 NULL 일 때, insert_into_new_root()를 호출해 새로운 root를 생성하고 적절히 초기화 후 반환 // Case4.1
-        - 
+        - 아닐 경우 get_left_index()를 호출하여 
    
 
 **Case 정리**
@@ -233,7 +239,6 @@ node * insert_into_node(node * root, node * parent, int left_index, int key, nod
 
 
 node * insert_into_parent(node * root, node * left, int key, node * right);
-
 ```
 
 
@@ -241,21 +246,36 @@ node * insert_into_parent(node * root, node * left, int key, node * right);
 
 ```c
 int get_neighbor_index(node * n);
+
 node * adjust_root(node * root);
-node * coalesce_nodes(node * root, node * n, node * neighbor,
-	int neighbor_index, int k_prime);
-node * redistribute_nodes(node * root, node * n, node * neighbor,
-	int neighbor_index,
-	int k_prime_index, int k_prime);
+
+node * coalesce_nodes(node * root, node * n, node * neighbor, int neighbor_index, int k_prime);
+
+node * redistribute_nodes(node * root, node * n, node * neighbor, int neighbor_index,	int k_prime_index, int k_prime);
+
 node * delete_entry(node * root, node * n, int key, void * pointer);
+
 node * delete(node * root, int key);
 
 void destroy_tree_nodes(node * root);
+
 node * destroy_tree(node * root);
 ```
+
+
+## 1.5 Detail flow of the structure modification 
+
+### 1.5.1 Split
+
+### 1.5.2 Merge
 
 
 ### 
 
 # 2. Analyzing "main.c"
 
+# 3. Designs or Required Changes for building on-disk b+ tree
+
+## 3.1 Designs
+
+## 3.2 Required Changes
