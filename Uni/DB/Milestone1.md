@@ -69,12 +69,13 @@ typedef struct record {
 ```c  
 typedef struct node {
     void ** pointers; 
-    // Leaf Node : record의 주소들을 저장한다.
+    // Leaf Node : record의 주소들을 저장한다. (key와 같은 인덱스)
     //             맨 끝 포인터는 다음 리프 노드를 가리킨다. 
-    // Internal Node : 자식 노드의 주소를 저장한다.
+    // Internal Node : 자식 노드의 주소를 저장한다. (key의 인덱스 + 1)
 
     int * keys; 
-    // Leaf Node, Internal Node : 키 값들을 저장한다.
+    // Leaf Node : record의 key를 저장한다.
+    // Internal Node : leaf를 찾아가기 위한 key값 저장
 
     struct node * parent; 
     // Leaf Node, Internal Node : 부모 노드의 주소를 저장한다.
@@ -92,9 +93,9 @@ typedef struct node {
 ## 1.3 extern 변수 (global하게 사용 가능)
 
 ```c
-extern int order;  // bpt.c에서 default값으로 초기화 
-extern node * queue; // queue의 헤더 부분
-extern bool verbose_output;	// 경로 출력 여부 (false)
+extern int order;  // order를 저장하는 변수
+extern node * queue; // queue의 첫 정보를 담는 주소를 저장하는 변수 
+extern bool verbose_output;	// 경로 출력 여부를 저장하는 변수
 ```
 ## 1.4 정의된 함수 
 
@@ -294,7 +295,7 @@ node * insert_into_node_after_splitting(node * root, node * parent,	int left_ind
     6. 현재 노드(N)와 이웃 노드를 합쳤을 때 
         - key의 최대 개수를 넘을 경우 redistribute_nodes()를 호출하여 이웃 노드에서 key를 하나 가져오고 root 반환//Case3.2.1
         - key의 최대 개수를 넘지 않을 경우 coalesce_nodes()호출 //Case3.2.2
-        (parent로 delete_entry()호출 3번부터 다시 실행)
+        (parent로 delete_entry()호출, 3번부터 다시 실행)
 
 **Case 정리**
 
@@ -309,6 +310,7 @@ node * insert_into_node_after_splitting(node * root, node * parent,	int left_ind
         - Case3.2 : 삭제 후 leaf node의 최소 개수를 만족하지 않을 때
             - Case3.2.1 : 이웃 노드와 합치는 것이 불가능 할 경우
             - Case3.2.2 : 이웃 노드와 합치는 것이 가능한 경우
+            (Case3.2.2는 끝나지 않고 parent에 대해 deletion을 다시 수행)
 
 
 **자세한 함수 설명**
@@ -365,9 +367,30 @@ node * destroy_tree(node * root); // 전체 tree를 삭제하는 함수
 ## 1.5 Detail flow of the structure modification 
 
 ### 1.5.1 Split
+<br>
 
-### 1.5.2 Merge
+- B+트리에서 Split은 insert할 때 최대 개수를 초과하면 일어난다. 
 
+- 또한, node의 종류에 따라 약간의 차이를 보인다.
+
+<br>
+
+**Leaf Node에서의 Split**
+
+    insert_into_leaf_after_splitting()
+
+- Internal Node에서의 Split
+    
+
+    insert_into_node_after_splitting()
+
+<br>
+
+### 1.5.2 Merge   
+<br>   
+
+B+트리에서 Merge는 
+<br>
 
 ### 
 
