@@ -420,17 +420,36 @@ node * destroy_tree(node * root); // 전체 tree를 삭제하는 함수
 - B+트리에서 Merge는 delete할 때 key의 최소 개수미만이면 일어난다. 
 
 - Merge에 영향을 끼치는 요소는 다음과 같다
-    - Node의 종류(Leaf, Internal)
+    - Node의 종류(Leaf, Internal) 
     - 이웃 노드의 key 개수 
-    - 삭제를 진행하는 노드의 부모에서의 그 노드를 가르키는 pointer index
+    - 삭제를 진행하는 노드의 부모에서의 그 노드를 가르키는 pointer index 
+    (leftmost or not)
 
 자세한 내용은 다음과 같다. 
+(Node의 종류 때문에 발생하는 index 관련 issue와 부모로 보내는 key값 관련 issue는 위에 설명했기에 생략한다.)
 
 
 **coalesce_nodes() 함수**
 
+     문제가 생긴 node의 key 개수와 이웃 노드의 key 개수 합이 
+     key 최대 개수를 넘지 않을 경우 실행한다.
+     자세한 단계는 다음과 같다.
+
+    1. 문제가 생긴 node가 leftmost이면 일반성을 위해 이웃 노드와 swap한다.
+    2. 문제가 생긴 노드의 정보를 모두 이웃 노드 뒤에 적절히 저장한다.
+    3. delete_entry() 통해 부모 노드에 문제가 생긴 노드의 key와 pointer를 지우도록 한다.
+
 
 **redistribute_nodes() 함수**
+
+     문제가 생긴 node의 key 개수와 이웃 노드의 key 개수 합이 
+     key 최대 개수를 넘을 경우 실행한다.
+     자세한 단계는 다음과 같다.
+
+    1.1 문제가 생긴 node가 leftmost이면 이웃 노드의 첫번째 key, pointer를 문제가 생긴 node 뒤에 적절히 저장한다.
+    1.2 문제가 생긴 node가 leftmost이 아니면 이웃 노드의 마지막 key, pointer를 문제가 생긴 node 첫 key,pointer에 적절히 저장한다.
+    2. 그에 따라 적절한 key 값으로 부모의 key값을 초기화 한다.
+    3. 다른 노드의 key, pointer 개수에 변화를 주지 않기 때문에 이대로 종료한다.
 
 <br>
 
