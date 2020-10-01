@@ -367,30 +367,74 @@ node * destroy_tree(node * root); // 전체 tree를 삭제하는 함수
 ## 1.5 Detail flow of the structure modification 
 
 ### 1.5.1 Split
+
+- B+트리에서 Split은 insert할 때 key의 최대 개수를 초과하면 일어난다. 
+
+- Split은 Node의 종류에 따라 약간의  차이가 있다. 
+
 <br>
 
-- B+트리에서 Split은 insert할 때 최대 개수를 초과하면 일어난다. 
+**Internal Node에서의 Split**
 
-- 또한, node의 종류에 따라 약간의 차이를 보인다.
-
-<br>
+    insert_into_parent()함수가 실행되었을 때 여유 공간이 없으면
+    insert_into_node_after_splitting() 함수를 통해 Split이 이루어진다.
+    자세한 단계는 다음과 같다.
+    
+    1. 새로운 leaf node를 만든다.
+    2. 새로운 key가 들어갈 index(IDX)를 선형탐색을 통해 구한다
+    3. 임시 배열(key, pointer)들을 할당해 
+    4. IDX보다 작은 index를 가지는 key 값들은 원래 index에, 큰 값들은 원래 index+1에 저장한다. 
+    (새로운 key는 IDX에 저장)
+    5. IDX보다 작은 같은 index를 가지는 pointer 값들은 원래 index에, 큰 값들은 원래 index+1에 저장한다. 
+    (새로운 pointer는 IDX+1에 저장)
+    6. key 임시배열의 첫번째부터 order/2 까지는 원래 leaf node에 저장하고
+    7. key 임시배열의 order/2 + 2부터 끝까지는 새로운 leaf node에 저장한다. (pointer도 알맞게 분배)
+    8. 새로운 leaf node의 부모를 원래 leaf node와 같게 한다. 
+    9. 새로운 leaf node 자식 노드의 부모를 새로운 leaf node로 초기화한다.
+    10.  order/2 + 1 번째 key는 insert_into_parent() 통해 부모에 삽입한다. 
+    
 
 **Leaf Node에서의 Split**
 
-    insert_into_leaf_after_splitting()
+    insert()함수가 실행되었을 때 여유 공간이 없으면
+    insert_into_leaf_after_splitting() 함수를 통해 Split이 이루어진다.
+    자세한 단계는 Internal Node에서의 Split과 거의 동일하나 다음이 다르다.
 
-- Internal Node에서의 Split
+    1. leaf node는 key에 대응되는 pointer(record)의 인덱스가 같다.
+    2. 마지막 key 다음 pointer가 아닌 마지막 pointer를 초기화 한다. 
+    3. 부모로 보내는 key를 따로 저장하여 삽입하는 것이 아니라 
+    새로운 leaf node의 첫 key값을 부모에 삽입한다. 
+
+
+위의 insert()로 최대 개수 초과 문제가 생길 경우,
+
+위 두 과정을 거쳐 leaf node에서부터 문제가 없을 때까지 
+
+부모 노드로 이동하여 split을 진행한다. 
     
 
-    insert_into_node_after_splitting()
+---
+
+### 1.5.2 Merge    
+
+- B+트리에서 Merge는 delete할 때 key의 최소 개수미만이면 일어난다. 
+
+- Merge에 영향을 끼치는 요소는 다음과 같다
+    - Node의 종류(Leaf, Internal)
+    - 이웃 노드의 key 개수 
+    - 삭제를 진행하는 노드의 부모에서의 그 노드를 가르키는 pointer index
+
+자세한 내용은 다음과 같다. 
+
+
+**coalesce_nodes() 함수**
+
+
+**redistribute_nodes() 함수**
 
 <br>
 
-### 1.5.2 Merge   
-<br>   
 
-B+트리에서 Merge는 
-<br>
 
 ### 
 
