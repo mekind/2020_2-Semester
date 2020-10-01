@@ -89,25 +89,12 @@ typedef struct node {
 } node;
 ```
 
-
-## 1.3 extern 변수 
-
-### 1.3.1 
+## 1.3 extern 변수 (global하게 사용 가능)
 
 ```c
-extern int order;  // bpt.c에서 default값으로 초기화 (DEFAULT_ORDER)
-```
-
-### 1.3.2 
-
-```c
-extern node * queue; // queue의 헤드 부분 이걸로 NULL 판단 (NULL)
-```
-
-### 1.3.3
-
-```c
-extern bool verbose_output;	// (false)
+extern int order;  // bpt.c에서 default값으로 초기화 
+extern node * queue; // queue의 헤더 부분
+extern bool verbose_output;	// 경로 출력 여부 (false)
 ```
 ## 1.4 정의된 함수 
 
@@ -118,7 +105,7 @@ void license_notice(void);// 버전 및 라이선스 관련 내용을출력한�
 void print_license(int licence_part);//라이선스 파일 따로 있을때 실행하는 함수이다. (이 프로그램에서는 실행되지 않음)   
 void usage_1(void); // order에 관한 설명을 출력
 void usage_2(void); // 명령어에 대한 설명을 출력 
-void usage_3(void); // 맨 처음 실행 할 때의 인자에 대한 설명을출력
+void usage_3(void); // 파일 실행시 입력 인자에 대한 설명을 출력
 ```
 
 ### 1.4.2 queue 관련 함수 
@@ -131,8 +118,8 @@ node * dequeue(void); // 큐에서 맨 앞 노드 제거
 ### 1.4.3 Tree 정보 관련 함수
 
 ```c
-void print_leaves(node * root); // 리프 노드 키 값 출력 ??
-void print_tree(node * root); // 트리 출력 ??
+void print_leaves(node * root); // 리프 노드 키 값 출력
+void print_tree(node * root); // 트리 출력 
 int height(node * root); // tree 높이 반환
 int path_to_root(node * root, node * child); // child 에서 root까지 거리 반환
 ```
@@ -146,9 +133,8 @@ int path_to_root(node * root, node * child); // child 에서 root까지 거리 �
 void find_and_print(node * root, int key, bool verbose); 
 // 입력한 키 값에 해당하는 노드의 주소, key, value 출력   
 
-
     // 함수 내에 존재하는 함수 
-    record * find(node * root, int key, bool verbose); // 
+    record * find(node * root, int key, bool verbose); // key값이 들어있는 record 주소 반환
 ```
 
 #### 범위 find
@@ -157,13 +143,15 @@ void find_and_print(node * root, int key, bool verbose);
 void find_and_print_range(node * root, int key_start, intkey_end, bool verbose); // 범위에 해당하는 노드의 주소, key,value 출력
 
 
-    //함수 내에 존재하는 함수 (노드를 찾는 함수)
+    //함수 내에 존재하는 함수 
     int find_range(node * root, int key_start, int key_end,bool verbose, int returned_keys[], void *returned_pointers[]);
+    // 범위에 해당하는 리프 노드를 찾고 선형탐색으로 끝값까지 배열에 저장
 
         //함수 내에 존재하는 함수 (해당 키에 해당하는 리프 찾는 함수)
         node * find_leaf(node * root, int key, bool verbose);
+        //해당 키가 들어있는 leaf node를 출력 
 ```
-
+***
 ### 1.4.5 Insertion 관련 함수
 
 <br>
@@ -275,7 +263,7 @@ node * insert_into_node_after_splitting(node * root, node * parent,	int left_ind
 
 
 ```
-
+***
 
 ### 1.4.6 Deletion 관련 함수
 <br>
@@ -288,7 +276,8 @@ node * insert_into_node_after_splitting(node * root, node * parent,	int left_ind
         - 존재하지 않는 경우, root 반환// Case1
         - 존재하는 경우, 찾은 노드(N)로 delete_entry() 호출
   
-    3. 해당 노드(N)로 remove_entry_from_node()를 실행해 key, record를 삭제하고 적절히 초기화 한다.
+    3. 해당 노드(N)로 remove_entry_from_node()를 실행해 key, pointer를 삭제하고 적절히 초기화 한다. 
+    (해당 노드에서만 삭제 다른 노드는 건드리지 않는다.)
 
     4. 해당 노드(N)가 root인지 확인한다.
         - root인 경우, adjust_root()호출
@@ -297,15 +286,15 @@ node * insert_into_node_after_splitting(node * root, node * parent,	int left_ind
                 - 자식이 있을 때, 첫 번째 자식을 반환 //Case2.2.1
                 - 없을 때, NULL 반환 //Case2.2.2
         - root가 아닌 경우, 노드에 들어가야할 key의 최소 개수를 구한다.
+  
     5. 현재 노드(N)의 num_keys와 key의 최소 개수를 비교해
         - num_keys가 더 크거나 같을 때, root를 반환//Case3.1
         - 작을 때, get_neighbor_index() 통해 같은 높이의 이웃 노드를 구한다. 
-    6. N 노드에 최대로 들어갈 수 있는 key 수와 이웃노드와 N 노드의 총 key 수(total)를 비교하여
-        - total이 더 크면 coalesce_nodes() 호출
-        - total이 더 작거나 같으면 redistribute_nodes()호출 
 
-
-    7.   레코드 free
+    6. 현재 노드(N)와 이웃 노드를 합쳤을 때 
+        - key의 최대 개수를 넘을 경우 redistribute_nodes()를 호출하여 이웃 노드에서 key를 하나 가져오고 root 반환//Case3.2.1
+        - key의 최대 개수를 넘지 않을 경우 coalesce_nodes()호출 //Case3.2.2
+        (parent로 delete_entry()호출 3번부터 다시 실행)
 
 **Case 정리**
 
@@ -317,7 +306,9 @@ node * insert_into_node_after_splitting(node * root, node * parent,	int left_ind
             - Case2.2.2 : root의 자식이 없는 경우
     - Case3 : 해당 key의 leaf node가 root가 아닐 때
         - Case3.1 : 삭제 후 leaf node의 최소 개수를 만족하는 경우
-        - Case3.2 : 
+        - Case3.2 : 삭제 후 leaf node의 최소 개수를 만족하지 않을 때
+            - Case3.2.1 : 이웃 노드와 합치는 것이 불가능 할 경우
+            - Case3.2.2 : 이웃 노드와 합치는 것이 가능한 경우
 
 
 **자세한 함수 설명**
@@ -354,14 +345,22 @@ int get_neighbor_index(node * n);
 
 
 node * coalesce_nodes(node * root, node * n, node * neighbor, int neighbor_index, int k_prime);
+// n 노드와 neighbor 노드를 합치는 함수이다. 
+// n 이 leftmost일 때도 일반적으로 처리하기 위해 neighbor와 swap시킨다.
+// 현재 위치가 leaf일 때 internal일 때를 나누어 적절히 초기화 한다.
 
 node * redistribute_nodes(node * root, node * n, node * neighbor, int neighbor_index,	int k_prime_index, int k_prime);
+// n 노드에서 부족한 key를 보충하기 위해 neighbor에서 가져오는 함수이다.
+// n이 leftmost일 때와 아닐 때를 구분한다.
+// leaf일 때 internal일 때를 나누어 적절히 초기화 한다.
 
-void destroy_tree_nodes(node * root);
+node * destroy_tree(node * root); // 전체 tree를 삭제하는 함수 
 
-node * destroy_tree(node * root);
+    //내부 함수 
+    void destroy_tree_nodes(node * root);
+    //leaf부터 올라오며 모든 데이터 삭제 
 ```
-
+***
 
 ## 1.5 Detail flow of the structure modification 
 
