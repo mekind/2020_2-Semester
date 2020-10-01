@@ -33,14 +33,14 @@
 
 ## 1.1 define 목록 
 
-### 1.1.1 ORDER 관련 
+### 1.1.1 ORDER (노드에 들어갈 수 있는 key의 개수)
 ```c
 #define DEFAULT_ORDER 4 // 기본값
 #define MIN_ORDER 3 // 최솟값
 #define MAX_ORDER 20 // 최댓값
 ```
 
-### 1.1.2 License 관련   ->  나중에 다시 확인 
+### 1.1.2 License 관련   
 
 ```c
 #define LICENSE_FILE "LICENSE.txt" // 파일명
@@ -88,6 +88,7 @@ typedef struct node {
     struct node * next; // queue에서 다음 노드를 찾을 때 쓰인다.
 } node;
 ```
+
 
 ## 1.3 extern 변수 
 
@@ -200,12 +201,13 @@ void find_and_print_range(node * root, int key_start, intkey_end, bool verbose);
      (모든 동적할당이 있는 곳에 예외처리가 되어있다.)
     - Case1 : 중복 key값 insert
     - Case2 : 처음으로 insert  
-    - Case3 : key가 들어갈 리프 노드에 여유 공간이 있을 때
-    - Case4: 리프 노드에 여유 공간이 없어 split을 할 경우
+    - Case3 : key가 들어갈 리프 노드에 여유 공간이 있을 경우
+    - Case4: 리프 노드에 여유 공간이 없어 split을 할 때
         - Case4.1 : key가 들어갈 리프 노드가 root인 경우
-        - Case4.2 : key가 들어갈 리프 노드가 root가 아닌 경우
+        - Case4.2 : key가 들어갈 리프 노드가 root가 아닐 때
             - Case4.2.1 : 부모 노드에 여유 공간이 있을 경우
             - Case4.2.2 : 부모 노드에 여유 공간이 없을 경우 
+              (Case4.2.2는 끝나지 않고 Case4 처음으로 돌아간다.)
 
 **자세한 함수 설명**
 
@@ -276,19 +278,84 @@ node * insert_into_node_after_splitting(node * root, node * parent,	int left_ind
 
 
 ### 1.4.6 Deletion 관련 함수
+<br>
 
+**가능한 call path는 다음과 같다.**
+
+    1. 명령어 d {key} 입력시 delete() 호출 
+
+    2. find(), find_leaf() 함수를 통해 key가 존재 여부 확인
+        - 존재하지 않는 경우, root 반환// Case1
+        - 존재하는 경우, 찾은 노드(N)로 delete_entry() 호출
+  
+    3. 해당 노드(N)로 remove_entry_from_node()를 실행해 key, record를 삭제하고 적절히 초기화 한다.
+
+    4. 해당 노드(N)가 root인지 확인한다.
+        - root인 경우, adjust_root()호출
+            - root의 num_keys가 0이 아닐 경우, root를 그대로 반환//Case2.1
+            - 0일 경우
+                - 자식이 있을 때, 첫 번째 자식을 반환 //Case2.2.1
+                - 없을 때, NULL 반환 //Case2.2.2
+        - root가 아닌 경우, 노드에 들어가야할 key의 최소 개수를 구한다.
+    5. 현재 노드(N)의 num_keys와 key의 최소 개수를 비교해
+        - num_keys가 더 크거나 같을 때, root를 반환//Case3.1
+        - 작을 때, get_neighbor_index() 통해 같은 높이의 이웃 노드를 구한다. 
+    6. N 노드에 최대로 들어갈 수 있는 key 수와 이웃노드와 N 노드의 총 key 수(total)를 비교하여
+        - total이 더 크면 coalesce_nodes() 호출
+        - total이 더 작거나 같으면 redistribute_nodes()호출 
+
+
+    7.   레코드 free
+
+**Case 정리**
+
+    - Case1 : 해당 key가 tree에 존재하지 않는 경우
+    - Case2 : 해당 key의 리프가 root일 때
+        - Case2.1 : 삭제 후에도 root에 key 존재하는 경우
+        - Case2.2 : 삭제 후에도 root에 key 존재하지 않을 때
+            - Case2.2.1 : root의 자식이 존재하는 경우
+            - Case2.2.2 : root의 자식이 없는 경우
+    - Case3 : 해당 key의 leaf node가 root가 아닐 때
+        - Case3.1 : 삭제 후 leaf node의 최소 개수를 만족하는 경우
+        - Case3.2 : 
+
+
+**자세한 함수 설명**
 ```c
-int get_neighbor_index(node * n);
+node * delete(node * root, int key);
+//키가 있는지 검사하고 
+// 있으면 delete_entry()를 실행 후
+// root를 반환한다. 
+
+node * delete_entry(node * root, node * n, int key, void * pointer);
+// 노드 n 에서 key, pointer를 삭제하는 함수이다 .
+// n이 leaf node일 수도 있고 internal node일 수도 있다.
+// remove_entry_from_node() 호출하여 실질적으로 n에서 key, pointer 제거 
+// n이 root인 경우 adjust_root() 호출하고 종료
+// 삭제된 노드가 root인 경우 adjust_root()를 실행
+// 노드에 해당하는 최소 키 개수를 만족하는 지를 확인하여
+// 만족하면 반환
+
+
+node * remove_entry_from_node(node * n, int key, node * pointer);
+//node에서 해당 ket, pointer를 삭제하는 함수
+// n이 leaf node일 수도 있고 internal node일 수도 있다.
+// 삭제가 이루어진 leaf 노드 반환
 
 node * adjust_root(node * root);
+//삭제가 root에서 일어났을 때, root를 조정하는 함수이다.
+//삭제 후  key값이 있는지
+//없으면 자식이 있는지에 따라 적절히 root를 반환하고
+//원래 root 노드를 free한다.
+
+int get_neighbor_index(node * n);
+// n의 부모 노드에서의 n의 pointer 인덱스를 찾고
+// -1을 하여 반환한다. 
+
 
 node * coalesce_nodes(node * root, node * n, node * neighbor, int neighbor_index, int k_prime);
 
 node * redistribute_nodes(node * root, node * n, node * neighbor, int neighbor_index,	int k_prime_index, int k_prime);
-
-node * delete_entry(node * root, node * n, int key, void * pointer);
-
-node * delete(node * root, int key);
 
 void destroy_tree_nodes(node * root);
 
