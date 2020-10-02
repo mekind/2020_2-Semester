@@ -428,6 +428,7 @@ node * destroy_tree(node * root); // 전체 tree를 삭제하는 함수
 자세한 내용은 다음과 같다. 
 (Node의 종류 때문에 발생하는 index 관련 issue와 부모로 보내는 key값 관련 issue는 위에 설명했기에 생략한다.)
 
+//최댓값 추가설명??
 
 **coalesce_nodes() 함수**
 
@@ -451,10 +452,10 @@ node * destroy_tree(node * root); // 전체 tree를 삭제하는 함수
     2. 그에 따라 적절한 key 값으로 부모의 key값을 초기화 한다.
     3. 다른 노드의 key, pointer 개수에 변화를 주지 않기 때문에 이대로 종료한다.
 
+이어지는 내용은 main함수에 대한 분석과 과제 조건 정리입니다.
 
-
+on-disk B+tree Design으로 바로 넘어가시려면 아래 링크를 누르세요.
 ## [Design 으로 바로가기](#2-designs-or-required-changes-for-building-on-disk-b-tree)
-이어지는 내용은 main함수에 대한 분석입니다.
 <br>
 
 ---
@@ -499,7 +500,7 @@ usage_2()함수에 자세히 기술되어 있다. 그 내용은 다음과 같다
 
 ### 2.0.1 추가해야되는 API 기능
 
-형식 : >{명령어} {인자1} {인자2}
+**형식 : >{명령어} {인자1} {인자2}**
 
     1. open <pathname>
         • <pathname> 경로에 존재하는 파일을 열거나 없으면 생성한다.
@@ -515,24 +516,83 @@ usage_2()함수에 자세히 기술되어 있다. 그 내용은 다음과 같다
     4. delete <key>
         • <key>에 해당하는 'record'를 삭제한다.
 
-### 2.0.2 API를 위한 추가 함수 
+### 2.0.2 추가로 필요한 함수 정리 
 
-    1. int open_table (char *pathname);
-        • <pathname> 경로에 존재하는 파일을 열거나 없으면 생성한다.
-        • 성공하면 unique한 테이블 id를, 실패하면 음수값을 반환한다.
+**Data Manager API**
+
+```c
+1. int open_table (char *pathname);
+//  • <pathname> 경로에 존재하는 파일을 열거나 없으면 생성한다.
+//  • 성공하면 unique한 테이블 id를, 실패하면 음수값을 반환한다.
+
+2. int db_insert (int64_t key, char * value);
+//  • <key>,<value> 쌍의 record를 file의 적절한 위치에 저장한다.
+//  • 성공하면 0, 실패하면 0이 아닌 값을 반환한다. 
+
+3. int db_find (int64_t key, char * ret_val);
+//  • <key>에 해당하는 'value'를 찾는다.
+//  • 해당하는 value가 존재하면 ret_val에 저장 후 0을 반환하고, 
+//    존재하지 않으면 0이아닌 값을 반환한다.
+//  • ret_val에 대한 메모리 할당은 caller 함수에서 일어나야 된다.
     
-    2. int db_insert (int64_t key, char * value);
-        • <key>,<value> 쌍의 record를 file의 적절한 위치에 저장한다.
-        • 성공하면 0, 실패하면 0이 아닌 값을 반환한다. 
+4. int db_delete (int64_t key);
+//  • <key>에 해당하는 'record'를 찾고 삭제한다.
+//  • 성공하면 0, 실패하면 0이 아닌 값을 반환한다.
+```
+**Page Manager API**
 
-    3. int db_find (int64_t key, char * ret_val);
-        • <key>에 해당하는 'value'를 찾는다.
-        • If found matching ‘key’, store matched ‘value’ string in ret_val and  return 0. Otherwise, return
-    non-zero value.
-        • Memory allocation for record structure(ret_val) should occur in caller    function.
-    1. int db_delete (int64_t key);
-    • Find the matching record and delete it if found.
-    • If success, return 0. Otherwise, return non-zero value.
+```c
+typedef uint64_t pagenum_t; //8 Bytes를 담을 수 있는 자료형
+
+pagenum_t file_alloc_page();
+// Free page 중에서 하나를 할당한다. 
+
+void file_free_page(pagenum_t pagenum);
+// 해당 페이지를 초기화하고 Free List에 추가 
+
+void file_read_page(pagenum_t pagenum, page_t* dest);
+// on-disk page를 in-memory page 구조로 읽어낸다.
+
+void file_write_page(pagenum_t pagenum, const page_t* src);
+// in-memory page를 on-disk page로 저장한다. 
+
++ Delayed Merge 관련 함수 : Merge를 Order에 상관없이 늦춘다.
+```
+
+
+
+### 2.0.3 자세한 구조 설명 (Size 및 구성 요소)
+
+**~~다행히도~~ Fixed된 data file를 생성한다. 자세한 구조는 다음과 같다.**
+
+    - 고정된 page size : 
+    - 고정된 record size : 128(8+120) Bytes -> 한 페이지 내 31개 record
+        - type : key => integer & value => string
+    - Page Type
+
+        1. Header page (special, containing metadata)
+            - Free page number [0-7] : 첫번째 아직 쓰이지 않은 페이지, 없으면 0
+            - Root page number [8-15] : root page 저장
+            - Number of pages [16-23] : 현재 존재하는 페이지 수
+        
+        2. Free page (maintained by free page list)
+            - Next free page Number: [0-7] (다음 Free page, 없으면 0)
+
+        3. Leaf page (containing records)
+            - Page Header : [0-127] 
+                - Parent page Number [0-7] : 부모 페이지 저장
+                - Is Leaf [8-11] : Internal은 0, Leaf는 1 저장 
+                - Number of keys [12-15] : key 개수 저장
+                - Right Sibling Page Number [120-127] : 다음 Leaf Page 주소 저장, 없으면 0
+            - 각각 Record : 128 Bytes (Key (8) + Value (120))
+            - Order = 32로 고정 
+        
+        4. Internal page (indexing internal/leaf page)
+            이해를 더 쉽게 하기 위해 Leaf와 대조하며 서술했다.
+            - Page Header [0-127] : Leaf와 동일 
+                - Right Sibling Page Number 대신 
+            - Record 대신 Key, Page 저장 : 16 Bytes (Key (8) + Page number (8))
+            - Order = 249로 고정 
 
 ## 2.1 Designs
 
