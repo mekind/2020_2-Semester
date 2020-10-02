@@ -17,9 +17,9 @@
 
 - (Naïve) designs or required changes for building on-disk b+ tree
 
-    - [Designs](#31-designs)
+    - [Designs](#21-designs)
 
-    - [Merge](#32-required-changes)
+    - [Required Changes](#22-required-changes)
 
 # 목차 
 
@@ -29,7 +29,7 @@
     - [1.3 extern 변수](#13-extern-변수)
     - [1.4 정의된 함수](#14-정의된-함수)
 
-# 1. Analyzing "bpt.h" with "bpt.c"
+# 1. Analyzing B+ Tree (bpt)
 
 ## 1.1 define 목록 
 
@@ -451,16 +451,89 @@ node * destroy_tree(node * root); // 전체 tree를 삭제하는 함수
     2. 그에 따라 적절한 key 값으로 부모의 key값을 초기화 한다.
     3. 다른 노드의 key, pointer 개수에 변화를 주지 않기 때문에 이대로 종료한다.
 
+
+
+## [Design 으로 바로가기](#2-designs-or-required-changes-for-building-on-disk-b-tree)
+이어지는 내용은 main함수에 대한 분석입니다.
 <br>
 
+---
+## 1.6 Analyzing Main Function (전제적인 프로그램 실행 flow)
 
+주어진 파일들로 make를 실행시 "main"이라는 실행 파일이 만들어진다. 
 
-### 
+"main"을 실행 시 다음과 같다.
 
-# 2. Analyzing "main.c"
+### 1.6.1 파일 실행 시 가능 옵션 
+실행과 동시에 최대 2개의 인자를 추가로 입력할 수 있다.
 
-# 3. Designs or Required Changes for building on-disk b+ tree
+    실행 형식 : ./main {order} {input_file} {추가인자}
 
-## 3.1 Designs
+    - {order} : order을 변경하는 인자이다. 3이상 20 이하의 수만 입력 가능하다.  (default=3)
 
-## 3.2 Required Changes
+    - {input_file} : 데이터가 저장된 파일 경로를 나타내고 파일 내 정보들을 tree에 insert한다.
+
+    - {추가인자} : 이 부분부터는 모든 내용을 무시한다.
+
+### 1.6.2 파일 실행 후 가능한 명령어 
+
+usage_2()함수에 자세히 기술되어 있다. 그 내용은 다음과 같다.
+
+    i <k>  -- Insert <k> (an integer) as both key and value).
+    f <k>  -- Find the value under key <k>.
+    p <k> -- Print the path from the root to key k andits associated value.
+    r <k1> <k2> -- Print the keys and values found in therange [<k1>, <k2>
+    d <k>  -- Delete key <k> and its associated value.
+    x -- Destroy the whole tree.  Start again with anempty tree of the same order.
+    t -- Print the B+ tree.
+    l -- Print the keys of the leaves (bottom row of thetree).
+    v -- Toggle output of pointer addresses ("verbose")in tree and leaves.
+    q -- Quit. (Or use Ctl-D.)
+    ? -- Print this help message.
+
+---
+
+# 2. Designs or Required Changes for building on-disk b+ tree
+
+## 2.0 주어진 조건 정리
+
+### 2.0.1 추가해야되는 API 기능
+
+형식 : >{명령어} {인자1} {인자2}
+
+    1. open <pathname>
+        • <pathname> 경로에 존재하는 파일을 열거나 없으면 생성한다.
+        • 아래 3개의 명령어는 open을 실행하고 실행되어야 한다.
+
+    2. insert <key> <value>
+        • <key>,<value> 쌍의 record를 file의 적절한 위치에 저장한다.
+        • 중복키는 허용하지 않는다.
+
+    3. find <key>
+        • <key>에 해당하는 'value'를 반환한다.
+
+    4. delete <key>
+        • <key>에 해당하는 'record'를 삭제한다.
+
+### 2.0.2 API를 위한 추가 함수 
+
+    1. int open_table (char *pathname);
+        • <pathname> 경로에 존재하는 파일을 열거나 없으면 생성한다.
+        • 성공하면 unique한 테이블 id를, 실패하면 음수값을 반환한다.
+    
+    2. int db_insert (int64_t key, char * value);
+        • <key>,<value> 쌍의 record를 file의 적절한 위치에 저장한다.
+        • 성공하면 0, 실패하면 0이 아닌 값을 반환한다. 
+
+    3. int db_find (int64_t key, char * ret_val);
+        • <key>에 해당하는 'value'를 찾는다.
+        • If found matching ‘key’, store matched ‘value’ string in ret_val and  return 0. Otherwise, return
+    non-zero value.
+        • Memory allocation for record structure(ret_val) should occur in caller    function.
+    1. int db_delete (int64_t key);
+    • Find the matching record and delete it if found.
+    • If success, return 0. Otherwise, return non-zero value.
+
+## 2.1 Designs
+
+## 2.2 Required Changes
