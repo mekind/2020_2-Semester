@@ -1,4 +1,5 @@
 
+<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
 # 0. 포함되어야 하는 내용 
 
@@ -17,17 +18,47 @@
 
 - (Naïve) designs or required changes for building on-disk b+ tree
 
-    - [Designs](#21-designs)
-
-    - [Required Changes](#22-required-changes)
+    - [Designs](#21-naive-on-disc-b-tree-designs)
 
 # 목차 
 
-- [1. Analyzing "bpt.h" with "bpt.c"](#1-analyzing-bpth-with-bptc)
-    - [1.1 define 목록](#11-define-목록)
-    - [1.2 정의된 구조체](#12-정의된-구조체)
-    - [1.3 extern 변수](#13-extern-변수)
-    - [1.4 정의된 함수](#14-정의된-함수)
+- [0. 포함되어야 하는 내용](#0-포함되어야-하는-내용)
+- [목차](#목차)
+- [1. Analyzing B+ Tree (bpt)](#1-analyzing-b-tree-bpt)
+  - [1.1 define 목록](#11-define-목록)
+    - [1.1.1 ORDER (노드에 들어갈 수 있는 key의 개수)](#111-order-노드에-들어갈-수-있는-key의-개수)
+    - [1.1.2 License 관련](#112-license-관련)
+  - [1.2 정의된 구조체](#12-정의된-구조체)
+    - [1.2.1 Record](#121-record)
+    - [1.2.2 Node](#122-node)
+  - [1.3 extern 변수 (global하게 사용 가능)](#13-extern-변수-global하게-사용-가능)
+  - [1.4 정의된 함수](#14-정의된-함수)
+    - [1.4.1 UI(User Interface)를 위한 함수](#141-uiuser-interface를-위한-함수)
+    - [1.4.2 queue 관련 함수](#142-queue-관련-함수)
+    - [1.4.3 Tree 정보 관련 함수](#143-tree-정보-관련-함수)
+    - [1.4.4 find 관련 함수](#144-find-관련-함수)
+      - [특정 값 find](#특정-값-find)
+      - [범위 find](#범위-find)
+    - [1.4.5 Insertion 관련 함수](#145-insertion-관련-함수)
+    - [1.4.6 Deletion 관련 함수](#146-deletion-관련-함수)
+  - [1.5 Detail flow of the structure modification](#15-detail-flow-of-the-structure-modification)
+    - [1.5.1 Split](#151-split)
+    - [1.5.2 Merge](#152-merge)
+  - [Design 으로 바로가기](#design-으로-바로가기)
+  - [1.6 Analyzing Main Function (전제적인 프로그램 실행 flow)](#16-analyzing-main-function-전제적인-프로그램-실행-flow)
+    - [1.6.1 파일 실행 시 가능 옵션](#161-파일-실행-시-가능-옵션)
+    - [1.6.2 파일 실행 후 가능한 명령어](#162-파일-실행-후-가능한-명령어)
+- [2. Designs for building on-disk b+ tree](#2-designs-for-building-on-disk-b-tree)
+  - [2.0 주어진 조건 정리](#20-주어진-조건-정리)
+    - [2.0.1 추가해야되는 API 기능](#201-추가해야되는-api-기능)
+    - [2.0.2 추가로 필요한 함수 정리](#202-추가로-필요한-함수-정리)
+    - [2.0.3 자세한 구조 설명 (Size 및 구성 요소)](#203-자세한-구조-설명-size-및-구성-요소)
+  - [2.1 Naive on-disc B+ Tree Designs](#21-naive-on-disc-b-tree-designs)
+    - [2.1.1 struct node 에서 struct page로 변화](#211-struct-node-에서-struct-page로-변화)
+    - [2.1.2 추가되는 함수들](#212-추가되는-함수들)
+
+<br>
+
 
 # 1. Analyzing B+ Tree (bpt)
 
@@ -494,7 +525,7 @@ usage_2()함수에 자세히 기술되어 있다. 그 내용은 다음과 같다
 
 ---
 
-# 2. Designs or Required Changes for building on-disk b+ tree
+# 2. Designs for building on-disk b+ tree
 
 ## 2.0 주어진 조건 정리
 
@@ -556,16 +587,16 @@ void file_read_page(pagenum_t pagenum, page_t* dest);
 void file_write_page(pagenum_t pagenum, const page_t* src);
 // in-memory page를 on-disk page로 저장한다. 
 
-+ Delayed Merge 관련 함수 : Merge를 Order에 상관없이 늦춘다.
+//추가로 Delayed Merge 관련 함수 : Merge를 Order에 상관없이 늦춘다.
 ```
 
 
 
 ### 2.0.3 자세한 구조 설명 (Size 및 구성 요소)
 
-**~~다행히도~~ Fixed된 data file를 생성한다. 자세한 구조는 다음과 같다.**
+**~~다행히도~~ Fixed된 크기로 data file를 생성한다. 자세한 구조는 다음과 같다.**
 
-    - 고정된 page size : 
+    - 고정된 page size : 4096 Bytes
     - 고정된 record size : 128(8+120) Bytes -> 한 페이지 내 31개 record
         - type : key => integer & value => string
     - Page Type
@@ -590,10 +621,118 @@ void file_write_page(pagenum_t pagenum, const page_t* src);
         4. Internal page (indexing internal/leaf page)
             이해를 더 쉽게 하기 위해 Leaf와 대조하며 서술했다.
             - Page Header [0-127] : Leaf와 동일 
-                - Right Sibling Page Number 대신 
+            - Right Sibling Page Number 대신 one more page number to interpret key ranges
             - Record 대신 Key, Page 저장 : 16 Bytes (Key (8) + Page number (8))
             - Order = 249로 고정 
 
-## 2.1 Designs
+## 2.1 Naive on-disc B+ Tree Designs 
 
-## 2.2 Required Changes
+### 2.1.1 struct node 에서 struct page로 변화 
+
+on-disk B+ Tree는 page를 기반으로 작동하기 때문에 
+
+기본적으로 변화가 필요한 부분이다. 
+
+과제 명세 ([과제 명세가 정리된 위치](#203-자세한-구조-설명-size-및-구성-요소))에 따르면 
+
+Page Type마다 저장하는 정보가 상당히 다르기에 
+
+다음과 같이 분류하여 정의해야 될 것 같다. 
+
+```c
+
+//Header page
+typedef struct Header_page {
+	pagenum_t Free_page_number; //첫번째 아직 쓰이지 않은 페이지, 없으면 0
+	pagenum_t Root_page_number; //root page 저장
+    pagenum_t Number_of_pages; //현재 존재하는 페이지 수
+    char Reserved[4072]; // size 조정
+} Header_page;
+
+
+//Free page
+typedef struct Free_page {
+	pagenum_t Next_free_page_Number; //다음 Free page, 없으면 0
+    char Not_used[4088]; // size 조정
+} Header_page;
+
+//Leaf page, Internal page
+//두 종류의 page는 공통적으로 Page_Header를 가지고 있어 먼저 정의한다.
+
+typedef struct Page_Header {
+    pagenum_t Parent page Number; // 부모 페이지 저장
+    int Is_Leaf; // Leaf 여부 저장
+    int Number_of_keys; //key 개수 저장 
+    pagenum_t one_more_page_number; //Leaf에서는 다른 Leaf, Internal에서는 leftmost child page
+} Page_Header;
+
+//추가적으로 Leaf에서는 Record
+//Internal에서는 key를 검색하게 하기 위한 Index를 저장하므로 
+//편의를 위해 각각 구조체를 정의한다.
+
+
+//type : key => integer & value => string, 128 Bytes(8+120)
+typedef struct Record {
+    long long key; 
+    char value[120];
+} Record;
+
+// 16 Bytes Key (8) + Page number (8)
+typedef struct Index {
+    long long key; 
+    pagenum_t ;
+} Record;
+
+typedef struct Internal_Page {
+    Page_Header h; // 페이지 헤더 
+    Record[31]; // Order 32
+} Internal_Page;
+
+typedef struct Leaf_Page {
+    Page_Header h; // 페이지 헤더 
+    Index[248]; // Order 249
+} Leaf_Page;
+```
+
+### 2.1.2 추가되는 함수들
+
+**Data Manager API**
+
+```c
+1. int open_table (char *pathname);
+//  • <pathname> 경로에 존재하는 파일을 열거나 없으면 생성한다.
+//  • 성공하면 unique한 테이블 id를, 실패하면 음수값을 반환한다.
+
+2. int db_insert (int64_t key, char * value);
+//  • <key>,<value> 쌍의 record를 file의 적절한 위치에 저장한다.
+//  • 성공하면 0, 실패하면 0이 아닌 값을 반환한다. 
+
+3. int db_find (int64_t key, char * ret_val);
+//  • <key>에 해당하는 'value'를 찾는다.
+//  • 해당하는 value가 존재하면 ret_val에 저장 후 0을 반환하고, 
+//    존재하지 않으면 0이아닌 값을 반환한다.
+//  • ret_val에 대한 메모리 할당은 caller 함수에서 일어나야 된다.
+    
+4. int db_delete (int64_t key);
+//  • <key>에 해당하는 'record'를 찾고 삭제한다.
+//  • 성공하면 0, 실패하면 0이 아닌 값을 반환한다.
+```
+**Page Manager API**
+
+```c
+typedef uint64_t pagenum_t; //8 Bytes를 담을 수 있는 자료형
+
+pagenum_t file_alloc_page();
+// Free page 중에서 하나를 할당한다. 
+
+void file_free_page(pagenum_t pagenum);
+// 해당 페이지를 초기화하고 Free List에 추가 
+
+void file_read_page(pagenum_t pagenum, page_t* dest);
+// on-disk page를 in-memory page 구조로 읽어낸다.
+
+void file_write_page(pagenum_t pagenum, const page_t* src);
+// in-memory page를 on-disk page로 저장한다. 
+
+//추가로 Delayed Merge 관련 함수 : Merge를 Order에 상관없이 늦춘다.
+```
