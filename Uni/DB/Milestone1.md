@@ -1,33 +1,20 @@
+# 0. 주요 내용
 
-<!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
+- [Insertion](#145-insertion-관련-함수)
+- [Deletion](#146-deletion-관련-함수)
+- [Split](#151-split)
+- [Merge](#152-merge)
+- [Design](#21-naive-on-disc-b-tree-designs)
 
-# 0. 포함되어야 하는 내용 
-
-- Possible call path of the insert/delete operation   
-
-    - [Insertion](#145-insertion-관련-함수)   
-
-    - [Deletion](#146-deletion-관련-함수)   
-
-
-- Detail flow of the structure modification (split, merge)
-
-    - [Split](#151-split)
-
-    - [Merge](#152-merge)
-
-- (Naïve) designs or required changes for building on-disk b+ tree
-
-    - [Designs](#21-naive-on-disc-b-tree-designs)
+<br>
 
 # 목차 
-
-- [0. 포함되어야 하는 내용](#0-포함되어야-하는-내용)
+- [0. 주요 내용](#0-주요-내용)
 - [목차](#목차)
 - [1. Analyzing B+ Tree (bpt)](#1-analyzing-b-tree-bpt)
   - [1.1 define 목록](#11-define-목록)
     - [1.1.1 ORDER (노드에 들어갈 수 있는 key의 개수)](#111-order-노드에-들어갈-수-있는-key의-개수)
-    - [1.1.2 License 관련](#112-license-관련)
+    - [1.1.2 ~~License 관련~~](#112-slicense-관련s)
   - [1.2 정의된 구조체](#12-정의된-구조체)
     - [1.2.1 Record](#121-record)
     - [1.2.2 Node](#122-node)
@@ -44,7 +31,6 @@
   - [1.5 Detail flow of the structure modification](#15-detail-flow-of-the-structure-modification)
     - [1.5.1 Split](#151-split)
     - [1.5.2 Merge](#152-merge)
-  - [Design 으로 바로가기](#design-으로-바로가기)
   - [1.6 Analyzing Main Function (전제적인 프로그램 실행 flow)](#16-analyzing-main-function-전제적인-프로그램-실행-flow)
     - [1.6.1 파일 실행 시 가능 옵션](#161-파일-실행-시-가능-옵션)
     - [1.6.2 파일 실행 후 가능한 명령어](#162-파일-실행-후-가능한-명령어)
@@ -55,7 +41,7 @@
     - [2.0.3 자세한 구조 설명 (Size 및 구성 요소)](#203-자세한-구조-설명-size-및-구성-요소)
   - [2.1 Naive on-disc B+ Tree Designs](#21-naive-on-disc-b-tree-designs)
     - [2.1.1 struct node 에서 struct page로 변화](#211-struct-node-에서-struct-page로-변화)
-    - [2.1.2 추가되는 함수들](#212-추가되는-함수들)
+    - [2.1.2 API](#212-api)
 
 <br>
 
@@ -71,7 +57,8 @@
 #define MAX_ORDER 20 // 최댓값
 ```
 
-### 1.1.2 License 관련   
+### 1.1.2 ~~License 관련~~
+현재 프로그램에서는 사용하지 않는다. 
 
 ```c
 #define LICENSE_FILE "LICENSE.txt" // 파일명
@@ -91,6 +78,7 @@ typedef struct record {
     int value;
 } record;
 ```
+In-Memory B+ Tree에서 
 
 실질적인 data를 저장하는 구조체 이다.
 
@@ -102,7 +90,7 @@ typedef struct node {
     void ** pointers; 
     // Leaf Node : record의 주소들을 저장한다. (key와 같은 인덱스)
     //             맨 끝 포인터는 다음 리프 노드를 가리킨다. 
-    // Internal Node : 자식 노드의 주소를 저장한다. (key의 인덱스 + 1)
+    // Internal Node : 자식 노드의 주소를 저장한다. (key가 들어있는 자식노드는 (key 인덱스 + 1)의 pointers에 저장)
 
     int * keys; 
     // Leaf Node : record의 key를 저장한다.
@@ -134,7 +122,7 @@ extern bool verbose_output;	// 경로 출력 여부를 저장하는 변수
 
 ```c
 void license_notice(void);// 버전 및 라이선스 관련 내용을출력한다.   
-void print_license(int licence_part);//라이선스 파일 따로 있을때 실행하는 함수이다. (이 프로그램에서는 실행되지 않음)   
+void print_license(int licence_part);// 라이선스 파일 따로 있을때 실행하는 함수이다. (이 프로그램에서는 실행되지 않음)   
 void usage_1(void); // order에 관한 설명을 출력
 void usage_2(void); // 명령어에 대한 설명을 출력 
 void usage_3(void); // 파일 실행시 입력 인자에 대한 설명을 출력
@@ -166,13 +154,15 @@ void find_and_print(node * root, int key, bool verbose);
 // 입력한 키 값에 해당하는 노드의 주소, key, value 출력   
 
     // 함수 내에 존재하는 함수 
-    record * find(node * root, int key, bool verbose); // key값이 들어있는 record 주소 반환
+    record * find(node * root, int key, bool verbose); 
+    // key값이 들어있는 record 주소 반환
 ```
 
 #### 범위 find
 
 ```c
-void find_and_print_range(node * root, int key_start, intkey_end, bool verbose); // 범위에 해당하는 노드의 주소, key,value 출력
+void find_and_print_range(node * root, int key_start, intkey_end, bool verbose); 
+// 범위에 해당하는 노드의 주소, key,value 출력
 
 
     //함수 내에 존재하는 함수 
@@ -188,13 +178,25 @@ void find_and_print_range(node * root, int key_start, intkey_end, bool verbose);
 
 <br>
 
+**Case 간단요약**
+
+    - Case1 : 중복 key값 insert
+    - Case2 : 처음 key insert  
+    - Case3 : key가 삽입될 리프 노드에 여유 공간이 있을 경우
+    - Case4: 삽입될 노드에 여유 공간이 없어 split을 할 때
+        - Case4.1 : key가 삽입될 노드가 root인 경우
+        - Case4.2 : key가 삽입될 노드가 root가 아닐 때
+            - Case4.2.1 : 부모 노드에 여유 공간이 있을 경우
+            - Case4.2.2 : 부모 노드에 여유 공간이 없을 경우 
+              (Case4.2.2는 끝나지 않고 Case4 처음으로 돌아간다.)
+
 **가능한 call path는 다음과 같다.**
 
     1. 명령어 i {key} 입력시 insert() 호출 
    
     2. find()를 호출해 key의 존재 여부 확인
        - 존재할 경우, root를 반환// Case 1
-       - 존재하지 경우, make_record()를 호출해 새로운 레코드를 만들고 pointer 변수에 저장
+       - 존재하지 경우, make_record()를 호출해 새로운 레코드를 생성 및 초기화 후 pointer 변수에 저장
 
     3. root 노드의 NULL 여부 확인 
        - NULL일 경우, start_new_tree()를 호출하여 반환 // Case2
@@ -215,26 +217,12 @@ void find_and_print_range(node * root, int key_start, intkey_end, bool verbose);
     7. leaf node 나 internal node는 split 진행 후 부모 노드에게 요구하는 행위가 같기 때문에 5번부터 다시 반복한다. 
    
 
-**Case 정리**
-
-    - Case0 : 동적할당을 실패할 경우 해당 error를 출력하며 종료
-     (모든 동적할당이 있는 곳에 예외처리가 되어있다.)
-    - Case1 : 중복 key값 insert
-    - Case2 : 처음으로 insert  
-    - Case3 : key가 들어갈 리프 노드에 여유 공간이 있을 경우
-    - Case4: 리프 노드에 여유 공간이 없어 split을 할 때
-        - Case4.1 : key가 들어갈 리프 노드가 root인 경우
-        - Case4.2 : key가 들어갈 리프 노드가 root가 아닐 때
-            - Case4.2.1 : 부모 노드에 여유 공간이 있을 경우
-            - Case4.2.2 : 부모 노드에 여유 공간이 없을 경우 
-              (Case4.2.2는 끝나지 않고 Case4 처음으로 돌아간다.)
-
 **자세한 함수 설명**
 
 ```c
 node * insert(node * root, int key, int value); 
 // 명령에서 i {key} 입력시 실행되는 함수
-// 여러 함수를 포함해 b+ 트리에 노드 및 레코드 생성 
+// insert 관련 모든 함수를 포함한다.
 
 record * make_record(int value); 
 // 새로운 레코드를 생성
@@ -300,6 +288,23 @@ node * insert_into_node_after_splitting(node * root, node * parent,	int left_ind
 ### 1.4.6 Deletion 관련 함수
 <br>
 
+
+**Case 간단 요약**
+
+    - Case1 : 해당 key가 tree에 존재하지 않는 경우
+    - Case2 : 해당 key의 리프가 root일 때
+        - Case2.1 : 삭제 후에도 root에 key 존재하는 경우
+        - Case2.2 : 삭제 후에도 root에 key 존재하지 않을 때
+            - Case2.2.1 : root의 자식이 존재하는 경우
+            - Case2.2.2 : root의 자식이 없는 경우
+    - Case3 : 해당 key의 leaf node가 root가 아닐 때
+        - Case3.1 : 삭제 후 leaf node의 최소 개수를 만족하는 경우
+        - Case3.2 : 삭제 후 leaf node의 최소 개수를 만족하지 않을 때
+            - Case3.2.1 : 이웃 노드와 합치는 것이 불가능 할 경우
+            - Case3.2.2 : 이웃 노드와 합치는 것이 가능한 경우
+            (Case3.2.2는 끝나지 않고 parent에 대해 deletion을 다시 수행)
+
+
 **가능한 call path는 다음과 같다.**
 
     1. 명령어 d {key} 입력시 delete() 호출 
@@ -327,21 +332,6 @@ node * insert_into_node_after_splitting(node * root, node * parent,	int left_ind
         - key의 최대 개수를 넘을 경우 redistribute_nodes()를 호출하여 이웃 노드에서 key를 하나 가져오고 root 반환//Case3.2.1
         - key의 최대 개수를 넘지 않을 경우 coalesce_nodes()호출 //Case3.2.2
         (parent로 delete_entry()호출, 3번부터 다시 실행)
-
-**Case 정리**
-
-    - Case1 : 해당 key가 tree에 존재하지 않는 경우
-    - Case2 : 해당 key의 리프가 root일 때
-        - Case2.1 : 삭제 후에도 root에 key 존재하는 경우
-        - Case2.2 : 삭제 후에도 root에 key 존재하지 않을 때
-            - Case2.2.1 : root의 자식이 존재하는 경우
-            - Case2.2.2 : root의 자식이 없는 경우
-    - Case3 : 해당 key의 leaf node가 root가 아닐 때
-        - Case3.1 : 삭제 후 leaf node의 최소 개수를 만족하는 경우
-        - Case3.2 : 삭제 후 leaf node의 최소 개수를 만족하지 않을 때
-            - Case3.2.1 : 이웃 노드와 합치는 것이 불가능 할 경우
-            - Case3.2.2 : 이웃 노드와 합치는 것이 가능한 경우
-            (Case3.2.2는 끝나지 않고 parent에 대해 deletion을 다시 수행)
 
 
 **자세한 함수 설명**
@@ -411,18 +401,18 @@ node * destroy_tree(node * root); // 전체 tree를 삭제하는 함수
     insert_into_node_after_splitting() 함수를 통해 Split이 이루어진다.
     자세한 단계는 다음과 같다.
     
-    1. 새로운 leaf node를 만든다.
+    1. 새로운 Internal node를 만든다.
     2. 새로운 key가 들어갈 index(IDX)를 선형탐색을 통해 구한다
     3. 임시 배열(key, pointer)들을 할당해 
     4. IDX보다 작은 index를 가지는 key 값들은 원래 index에, 큰 값들은 원래 index+1에 저장한다. 
     (새로운 key는 IDX에 저장)
     5. IDX보다 작은 같은 index를 가지는 pointer 값들은 원래 index에, 큰 값들은 원래 index+1에 저장한다. 
     (새로운 pointer는 IDX+1에 저장)
-    6. key 임시배열의 첫번째부터 order/2 까지는 원래 leaf node에 저장하고
-    7. key 임시배열의 order/2 + 2부터 끝까지는 새로운 leaf node에 저장한다. (pointer도 알맞게 분배)
-    8. 새로운 leaf node의 부모를 원래 leaf node와 같게 한다. 
-    9. 새로운 leaf node 자식 노드의 부모를 새로운 leaf node로 초기화한다.
-    10.  order/2 + 1 번째 key는 insert_into_parent() 통해 부모에 삽입한다. 
+    6. key 임시배열의 첫번째부터 order/2 까지는 원래 Internal node에 저장하고
+    7. key 임시배열의 order/2 + 2부터 끝까지는 새로운 Internal node에 저장한다. (pointer도 알맞게 분배)
+    8. 새로운 Internal node의 부모를 원래 Internal node와 같게 한다. 
+    9. 새로운 Internal node 자식 노드의 부모를 새로운 Internal node로 초기화한다.
+    10.  order/2 + 1 번째 key는 insert_into_parent() 통해 부모에 삽입한다. 여유 공간이 없으면 1번부터 다시 반복
     
 
 **Leaf Node에서의 Split**
@@ -436,14 +426,7 @@ node * destroy_tree(node * root); // 전체 tree를 삭제하는 함수
     3. 부모로 보내는 key를 따로 저장하여 삽입하는 것이 아니라 
     새로운 leaf node의 첫 key값을 부모에 삽입한다. 
 
-
-위의 insert()로 최대 개수 초과 문제가 생길 경우,
-
-위 두 과정을 거쳐 leaf node에서부터 문제가 없을 때까지 
-
-부모 노드로 이동하여 split을 진행한다. 
     
-
 ---
 
 ### 1.5.2 Merge    
@@ -459,35 +442,37 @@ node * destroy_tree(node * root); // 전체 tree를 삭제하는 함수
 자세한 내용은 다음과 같다. 
 (Node의 종류 때문에 발생하는 index 관련 issue와 부모로 보내는 key값 관련 issue는 위에 설명했기에 생략한다.)
 
-//최댓값 추가설명??
+
 
 **coalesce_nodes() 함수**
 
-     문제가 생긴 node의 key 개수와 이웃 노드의 key 개수 합이 
+     문제가 생긴 node(N)의 key 개수와 이웃 노드의 key 개수 합이 
      key 최대 개수를 넘지 않을 경우 실행한다.
      자세한 단계는 다음과 같다.
 
-    1. 문제가 생긴 node가 leftmost이면 일반성을 위해 이웃 노드와 swap한다.
-    2. 문제가 생긴 노드의 정보를 모두 이웃 노드 뒤에 적절히 저장한다.
-    3. delete_entry() 통해 부모 노드에 문제가 생긴 노드의 key와 pointer를 지우도록 한다.
+    1. 이웃 노드를 구한다(왼쪽 Sibling node)
+    2. N이 leftmost이면 일반성을 위해 이웃 노드와 swap해서 생각한다.
+    3. N의 정보(keys, pointers)를 모두 이웃 노드 뒤에 적절히 저장한다.
+    4. delete_entry() 통해 부모 노드에 N의 key와 pointer를 지우도록 한다.
 
 
 **redistribute_nodes() 함수**
 
-     문제가 생긴 node의 key 개수와 이웃 노드의 key 개수 합이 
+     문제가 생긴 node(N)의 key 개수와 이웃 노드의 key 개수 합이 
      key 최대 개수를 넘을 경우 실행한다.
      자세한 단계는 다음과 같다.
 
-    1.1 문제가 생긴 node가 leftmost이면 이웃 노드의 첫번째 key, pointer를 문제가 생긴 node 뒤에 적절히 저장한다.
-    1.2 문제가 생긴 node가 leftmost이 아니면 이웃 노드의 마지막 key, pointer를 문제가 생긴 node 첫 key,pointer에 적절히 저장한다.
+    1.1 N이 leftmost이면 이웃 노드의 첫번째 key, pointer를 N의 맨 뒤에 적절히 저장한다.
+    1.2 N이 leftmost가 아니면 이웃 노드의 마지막 key, pointer를 N의 첫 key,pointer에 적절히 저장한다.
     2. 그에 따라 적절한 key 값으로 부모의 key값을 초기화 한다.
     3. 다른 노드의 key, pointer 개수에 변화를 주지 않기 때문에 이대로 종료한다.
 
 이어지는 내용은 main함수에 대한 분석과 과제 조건 정리입니다.
 
 on-disk B+tree Design으로 바로 넘어가시려면 아래 링크를 누르세요.
-## [Design 으로 바로가기](#2-designs-or-required-changes-for-building-on-disk-b-tree)
-<br>
+
+[Design 으로 바로가기](#21-naive-on-disc-b-tree-designs)
+
 
 ---
 ## 1.6 Analyzing Main Function (전제적인 프로그램 실행 flow)
@@ -633,106 +618,153 @@ on-disk B+ Tree는 page를 기반으로 작동하기 때문에
 
 기본적으로 변화가 필요한 부분이다. 
 
-과제 명세 ([과제 명세가 정리된 위치](#203-자세한-구조-설명-size-및-구성-요소))에 따르면 
+[과제 명세](#203-자세한-구조-설명-size-및-구성-요소)에 보고
 
-Page Type마다 저장하는 정보가 상당히 다르기에 
+Page Type마다 정보들이 상이해 따로 정의하려 했으나
 
-다음과 같이 분류하여 정의해야 될 것 같다. 
+Page를 할당할 때를 생각하면 
+
+Free, Leaf, Internal 페이지들 간에 변환이 자유로워야
+
+훨씬 편리하다고 느껴 다음과 같이 수정하였다.
 
 ```c
-
-//Header page
+//Header page는 unqiue하기에 따로 정의한다.
 typedef struct Header_page {
-	pagenum_t Free_page_number; //첫번째 아직 쓰이지 않은 페이지, 없으면 0
-	pagenum_t Root_page_number; //root page 저장
+	pagenum_t Free_page; //첫번째 아직 쓰이지 않은 페이지, 없으면 0
+	pagenum_t Root_page; //root page 저장
     pagenum_t Number_of_pages; //현재 존재하는 페이지 수
     char Reserved[4072]; // size 조정
 } Header_page;
 
-
-//Free page
-typedef struct Free_page {
-	pagenum_t Next_free_page_Number; //다음 Free page, 없으면 0
-    char Not_used[4088]; // size 조정
-} Header_page;
-
-//Leaf page, Internal page
-//두 종류의 page는 공통적으로 Page_Header를 가지고 있어 먼저 정의한다.
-
-typedef struct Page_Header {
-    pagenum_t Parent page Number; // 부모 페이지 저장
-    int Is_Leaf; // Leaf 여부 저장
-    int Number_of_keys; //key 개수 저장 
-    pagenum_t one_more_page_number; //Leaf에서는 다른 Leaf, Internal에서는 leftmost child page
-} Page_Header;
-
-//추가적으로 Leaf에서는 Record
+//Leaf에서는 Record
 //Internal에서는 key를 검색하게 하기 위한 Index를 저장하므로 
 //편의를 위해 각각 구조체를 정의한다.
-
-
 //type : key => integer & value => string, 128 Bytes(8+120)
+
 typedef struct Record {
-    long long key; 
+    int64_t key; // unsigned integar가 아닌 integar
     char value[120];
 } Record;
 
 // 16 Bytes Key (8) + Page number (8)
 typedef struct Index {
-    long long key; 
-    pagenum_t ;
-} Record;
+    int64_t key; 
+    pagenum_t child;
+}
 
-typedef struct Internal_Page {
-    Page_Header h; // 페이지 헤더 
-    Record[31]; // Order 32
-} Internal_Page;
+//Free, Leaf, Internal을 동시에 정의하는 구조체는 다음과 같다.
+typedef struct page_t {
+    pagenum_t Parent_or_Next_page_Number; 
+    // Leaf, Internal은 부모 페이지 저장
+    // Free는 다음 Free 페이지 저장, Free는 여기만 초기화 한다.
 
-typedef struct Leaf_Page {
-    Page_Header h; // 페이지 헤더 
-    Index[248]; // Order 249
-} Leaf_Page;
+    int Is_Leaf; // Leaf 여부 저장
+    int Number_of_keys; //key 개수 저장 
+    char Reserved[104];
+
+    pagenum_t one_more_page_number; 
+    //Leaf에서는 다음 Leaf 저장
+    //Internal에서는 leftmost child page 저장
+
+    // Page_Header 
+
+    union 
+	{
+		Record Records[31]; // Order 32
+		Index Indexes[248]; // Order 249
+	};
+} page_t;
 ```
 
-### 2.1.2 추가되는 함수들
+### 2.1.2 API
 
-**Data Manager API**
-
-```c
-1. int open_table (char *pathname);
-//  • <pathname> 경로에 존재하는 파일을 열거나 없으면 생성한다.
-//  • 성공하면 unique한 테이블 id를, 실패하면 음수값을 반환한다.
-
-2. int db_insert (int64_t key, char * value);
-//  • <key>,<value> 쌍의 record를 file의 적절한 위치에 저장한다.
-//  • 성공하면 0, 실패하면 0이 아닌 값을 반환한다. 
-
-3. int db_find (int64_t key, char * ret_val);
-//  • <key>에 해당하는 'value'를 찾는다.
-//  • 해당하는 value가 존재하면 ret_val에 저장 후 0을 반환하고, 
-//    존재하지 않으면 0이아닌 값을 반환한다.
-//  • ret_val에 대한 메모리 할당은 caller 함수에서 일어나야 된다.
-    
-4. int db_delete (int64_t key);
-//  • <key>에 해당하는 'record'를 찾고 삭제한다.
-//  • 성공하면 0, 실패하면 0이 아닌 값을 반환한다.
-```
-**Page Manager API**
+**On-Disk API**
 
 ```c
-typedef uint64_t pagenum_t; //8 Bytes를 담을 수 있는 자료형
-
-pagenum_t file_alloc_page();
-// Free page 중에서 하나를 할당한다. 
-
-void file_free_page(pagenum_t pagenum);
-// 해당 페이지를 초기화하고 Free List에 추가 
-
 void file_read_page(pagenum_t pagenum, page_t* dest);
-// on-disk page를 in-memory page 구조로 읽어낸다.
-
-void file_write_page(pagenum_t pagenum, const page_t* src);
-// in-memory page를 on-disk page로 저장한다. 
-
-//추가로 Delayed Merge 관련 함수 : Merge를 Order에 상관없이 늦춘다.
 ```
+이 함수를 통해 Disk의 해당 페이지의 정보를 In-Memory로 옮긴다.
+
+다음과 같은 순서로 read가 실행 될 것이다.
+
+1. Header page
+2. Root page
+3. Internal page
+4. Leaf page
+
+이 함수를 이용해 Disk의 정보를 In-Memory B+ Tree로 옮길 예정이다.
+
+```c
+void file_write_page(pagenum_t pagenum, const page_t* src);
+```
+
+이 함수를 통해, In-Memory에서 Page변화를 Disk에서도 수정한다,
+
+```c
+void file_free_page(pagenum_t pagenum);
+```
+Disk에서 페이지를 초기화하는 함수이다. 다음과 같은 단계가 필요하다.
+1. Page안 에 변수들을 적절히 초기화한다.
+2. Header_Page의 Free_page를 next free page로 초기화한다.
+3. Header_Page의 Free_page 자기 자신으로 한다.
+
+```c
+pagenum_t file_alloc_page();
+```
+Disk에서 Free Page를 할당하는 함수이다. 다음과 같은 단계가 필요하다.
+1. Header_Page의 Free_page참조한다.
+2. 0이면 에러를 출력하고 종료한다.
+3. 0이 아니라면 그 값(Free)을 저장하고 새로운 페이지를 할당한다. 
+4. 실패시 Header_Page의 Free_page을 0으로 초기화한다.
+5. 성공시 Header_Page의 Free_page 를 할당된 주소값으로 초기화 한다.
+6. Free를 반환한다.
+
+```c
+int open_table (char *pathname);
+```
+Disk의 file을 In-Memory에서 참조하는 함수이다. 다음과 같은 단계가 필요하다. 
+1. pathname 경로에 존재하는 파일 연다.
+2. 존재하지 않으면, 파일을 생성하고 Header Page를 적절히초기화한다.
+3. 파일 내용을 따로 반환하지 않기 때문에 전역변수의 파일 포인터를 선언해 저장한다.
+4. 성공하면 테이블 id를 반환하고, 실패시 음수를 반환한다.
+
+**In-Memory API**
+```c
+int db_insert (int64_t key, char * value);
+```
+ 1. key가 들어갈 Page를 찾는다.
+ 2. key가 들어갈 record를 찾는다.
+ 3. In-Memory에서 leaf page_t를 수정한다.
+ 4. Order을 초과하면 split하고 문제가 없을때까지 부모로 이동한다.
+ 5. 이동하면서 변경된, 추가된 페이지(A) 따로 저장한다.
+ 6. file_alloc_page()를 사용해 (A)만큼 페이지를 추가한다.
+ 7. file_write_page() Disk에도 정보를 update한다.
+ 8. 성공시 0, 실패시 다른 값 반환 
+
+```c
+int db_find (int64_t key, char * ret_val);
+```
+해당 키를 찾는 함수이다. 다음과 같은 진행이 일어난다. 
+
+1. root page부터 내려가며 찾는다.
+2. key에 해당하는 leaf page에서 key를 찾는다.
+3. 해당하는 value가 존재하면 ret_val에 저장 후 0을 반환하고, 
+존재하지 않으면 0이아닌 값을 반환한다.
+
+주의사항 : ret_val에 대한 메모리 할당은 caller 함수에서 일어나야 된다.
+
+```c
+int db_delete (int64_t key);
+```
+해당 키를 찾고 삭제하는 함수이다. 다음과 같은 단계로 진행한다.
+
+1. key를 찾는다. 
+2. 해당 key, value를 삭제한다.
+3. 원래 bpt의 삭제와는 달리 key 개수가 0이 될 때까지 구조에 변화를 주지 않는다. (Delay Merge)
+4. key개수가 0이면 coalesce()를 실행해 한쪽으로 합친다.
+5. 문제가 없을때까지 부모로 이동한다.
+6. 이동하면서 변경된 페이지(A) 따로 저장한다.
+7. file_free_page()를 사용해 (A)에 해당하는 페이지를 삭제한다
+8. file_write_page() Disk에도 정보를 update한다.
+9. 성공하면 0, 실패하면 0이 아닌 값을 반환한다.
