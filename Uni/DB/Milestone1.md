@@ -9,8 +9,6 @@
 <br>
 
 # 목차 
-- [0. 주요 내용](#0-주요-내용)
-- [목차](#목차)
 - [1. Analyzing B+ Tree (bpt)](#1-analyzing-b-tree-bpt)
   - [1.1 define 목록](#11-define-목록)
     - [1.1.1 ORDER (노드에 들어갈 수 있는 key의 개수)](#111-order-노드에-들어갈-수-있는-key의-개수)
@@ -41,7 +39,7 @@
     - [2.0.3 자세한 구조 설명 (Size 및 구성 요소)](#203-자세한-구조-설명-size-및-구성-요소)
   - [2.1 Naive on-disc B+ Tree Designs](#21-naive-on-disc-b-tree-designs)
     - [2.1.1 struct node 에서 struct page로 변화](#211-struct-node-에서-struct-page로-변화)
-    - [2.1.2 API](#212-api)
+    - [2.1.2 API Design](#212-api)
 
 <br>
 
@@ -88,8 +86,7 @@ In-Memory B+ Tree에서
 ```c  
 typedef struct node {
     void ** pointers; 
-    // Leaf Node : record의 주소들을 저장한다. (key와 같은 인덱스)
-    //             맨 끝 포인터는 다음 리프 노드를 가리킨다. 
+    // Leaf Node : record의 주소들을 저장한다. (key와 같은 인덱스) 마지막 포인터는 다음 리프 노드를 가리킨다. 
     // Internal Node : 자식 노드의 주소를 저장한다. (key가 들어있는 자식노드는 (key 인덱스 + 1)의 pointers에 저장)
 
     int * keys; 
@@ -109,12 +106,12 @@ typedef struct node {
 } node;
 ```
 
-## 1.3 extern 변수 (global하게 사용 가능)
+## 1.3 extern 변수 (main에서도 사용가능)
 
 ```c
 extern int order;  // order를 저장하는 변수
 extern node * queue; // queue의 첫 정보를 담는 주소를 저장하는 변수 
-extern bool verbose_output;	// 경로 출력 여부를 저장하는 변수
+extern bool verbose_output;// 경로 출력 여부를 저장하는 변수
 ```
 ## 1.4 정의된 함수 
 
@@ -614,17 +611,11 @@ void file_write_page(pagenum_t pagenum, const page_t* src);
 
 ### 2.1.1 struct node 에서 struct page로 변화 
 
-on-disk B+ Tree는 page를 기반으로 작동하기 때문에 
+on-disk B+ Tree는 page를 기반으로 작동하기 때문에 기본적으로 변화가 필요한 부분이다. 
 
-기본적으로 변화가 필요한 부분이다. 
+[과제 명세](#203-자세한-구조-설명-size-및-구성-요소)를 보고 Page Type마다 정보들이 상이해 따로 정의하려 했으나
 
-[과제 명세](#203-자세한-구조-설명-size-및-구성-요소)에 보고
-
-Page Type마다 정보들이 상이해 따로 정의하려 했으나
-
-Page를 할당할 때를 생각하면 
-
-Free, Leaf, Internal 페이지들 간에 변환이 자유로워야
+Page를 할당할 때를 생각하면 Free, Leaf, Internal 페이지들 간에 변환이 자유로워야
 
 훨씬 편리하다고 느껴 다음과 같이 수정하였다.
 
@@ -651,7 +642,7 @@ typedef struct Record {
 typedef struct Index {
     int64_t key; 
     pagenum_t child;
-}
+} Index;
 
 //Free, Leaf, Internal을 동시에 정의하는 구조체는 다음과 같다.
 typedef struct page_t {
@@ -677,9 +668,11 @@ typedef struct page_t {
 } page_t;
 ```
 
-### 2.1.2 API
+### 2.1.2 API Design
 
 **On-Disk API**
+
+---
 
 ```c
 void file_read_page(pagenum_t pagenum, page_t* dest);
@@ -695,11 +688,15 @@ void file_read_page(pagenum_t pagenum, page_t* dest);
 
 이 함수를 이용해 Disk의 정보를 In-Memory B+ Tree로 옮길 예정이다.
 
+---
+
 ```c
 void file_write_page(pagenum_t pagenum, const page_t* src);
 ```
 
 이 함수를 통해, In-Memory에서 Page변화를 Disk에서도 수정한다,
+
+---
 
 ```c
 void file_free_page(pagenum_t pagenum);
@@ -708,6 +705,8 @@ Disk에서 페이지를 초기화하는 함수이다. 다음과 같은 단계가
 1. Page안 에 변수들을 적절히 초기화한다.
 2. Header_Page의 Free_page를 next free page로 초기화한다.
 3. Header_Page의 Free_page 자기 자신으로 한다.
+
+---
 
 ```c
 pagenum_t file_alloc_page();
@@ -720,6 +719,8 @@ Disk에서 Free Page를 할당하는 함수이다. 다음과 같은 단계가 �
 5. 성공시 Header_Page의 Free_page 를 할당된 주소값으로 초기화 한다.
 6. Free를 반환한다.
 
+---
+
 ```c
 int open_table (char *pathname);
 ```
@@ -729,7 +730,12 @@ Disk의 file을 In-Memory에서 참조하는 함수이다. 다음과 같은 단�
 3. 파일 내용을 따로 반환하지 않기 때문에 전역변수의 파일 포인터를 선언해 저장한다.
 4. 성공하면 테이블 id를 반환하고, 실패시 음수를 반환한다.
 
+---
+
 **In-Memory API**
+
+---
+
 ```c
 int db_insert (int64_t key, char * value);
 ```
@@ -742,6 +748,8 @@ int db_insert (int64_t key, char * value);
  7. file_write_page() Disk에도 정보를 update한다.
  8. 성공시 0, 실패시 다른 값 반환 
 
+---
+
 ```c
 int db_find (int64_t key, char * ret_val);
 ```
@@ -753,6 +761,8 @@ int db_find (int64_t key, char * ret_val);
 존재하지 않으면 0이아닌 값을 반환한다.
 
 주의사항 : ret_val에 대한 메모리 할당은 caller 함수에서 일어나야 된다.
+
+---
 
 ```c
 int db_delete (int64_t key);
