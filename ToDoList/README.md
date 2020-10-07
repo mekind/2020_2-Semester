@@ -85,3 +85,41 @@
 - ICPC 준비 
 
 - LOHA Project 
+
+
+### 10.07
+
+앞으로 할 일 정리 
+
+- DB 과제 
+
+- 전공 과제(확인하자)
+
+- 웹사이트 완료 
+  - Users modeling
+  - 로그인
+  - 소셜 로그인 구현
+
+- 앱 개발 
+  - docker 개발 
+  - mux, live streaming 연구 
+  
+- ICPC 준비  
+
+- 전공 공부 (시험 2주전)
+
+
+### 10.08 
+
+- ~~Laravel User modeling 및 로그인 구현 ---> 일요일날 하자.~~
+
+- Django docker , gunicorn 추가 
+
+- ICPC 문제 풀기 
+
+- Milestone2 시작 (DB)
+
+- 전공 공부 
+
+
+
