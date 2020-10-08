@@ -21,6 +21,8 @@
 
 - 마프 HW1 (10.15 예정)
 
+- VisionLeisure Production (10.13 예정)
+
 오늘 할일 
 
 - 마프 수업 듣고 실습하기 
