@@ -1,13 +1,34 @@
 # What to do 
 | 과목              | 수업 | 과제         | 시험공부 |
 | ----------------- | ---- | ------------ | -------- |
-| DataBase          | 3    | MileStone2   | NULL     |
+| DataBase          | 0    | MileStone2   | NULL     |
 | SystemProgramming | 0    | NULL         | NULL     |
 | MicroProcessor    | 1    | HW1          | NULL     |
 | Computer Network  | 0    | NULL         | NULL     |
 | Algorithm         | 0    | NULL         | NULL     |
 | 형법              | 0    | NULL         | NULL     |
 | 사실              | 2    | 한양진로계획 |
+
+## 10.09 
+
+해야될일
+
+- DB 강의 4-7차 듣고 정리 (10.12예정)
+
+- Django, gunicorn 도커에 추가 (10.10 예정)
+
+- Laravel, 네이티브 로그인 및 소셜 로그인 구현 및 모델링 (10.11 예정)
+
+- 마프 HW1 (10.15 예정)
+
+오늘 할일 
+
+- 마프 수업 듣고 실습하기 
+
+- ICPC 준비 
+
+- Laravel 
+
 
 ## 10.08   
 
