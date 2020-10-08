@@ -1,5 +1,13 @@
 # What to do 
-
+| 과목              | 수업 | 과제         | 시험공부 |
+| ----------------- | ---- | ------------ | -------- |
+| DataBase          | 3    | MileStone2   | NULL     |
+| SystemProgramming | 0    | NULL         | NULL     |
+| MicroProcessor    | 1    | HW1          | NULL     |
+| Computer Network  | 0    | NULL         | NULL     |
+| Algorithm         | 0    | NULL         | NULL     |
+| 형법              | 0    | NULL         | NULL     |
+| 사실              | 2    | 한양진로계획 |
 
 ## 10.08   
 
