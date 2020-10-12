@@ -1,7 +1,7 @@
 # What to do 
 | 과목              | 수업 | 과제         | 시험공부 |
 | ----------------- | ---- | ------------ | -------- |
-| DataBase          | 0    | MileStone2   | NULL     |
+| DataBase          | 0    | MileStone2   | 4, 5-1(24분)     |
 | SystemProgramming | 0    | NULL         | NULL     |
 | MicroProcessor    | 1    | HW1          | NULL     |
 | Computer Network  | 0    | NULL         | NULL     |

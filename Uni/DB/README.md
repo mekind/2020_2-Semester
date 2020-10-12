@@ -12,6 +12,12 @@ A+을 받아보자
       - [4.1.3 Transaction Proccess Concept](#413-transaction-proccess-concept)
     - [4.2 STORAGE MEDIA](#42-storage-media)
   - [Lecture 5 - DiskFilesBuffers Part2](#lecture-5---diskfilesbuffers-part2)
+    - [5.1 DATABASE FILES](#51-database-files)
+    - [5.2 PAGE LAYOUT](#52-page-layout)
+    - [5.3 RECORD LAYOUT](#53-record-layout)
+  - [Lecture 6 File Organizations (Files and Index Management)](#lecture-6-file-organizations-files-and-index-management)
+    - [6.1 Access Patterns](#61-access-patterns)
+    - [6.2 Cost Model for Analysis](#62-cost-model-for-analysis)
 
 ## Lecture 1 : Course Overview
 
@@ -146,7 +152,7 @@ A+을 받아보자
     4. SSD : Notes on Flash
         - Wear Leveling : 한 곳에 계속 안 쓰게 만듦
 
-    5. Design 철학 : Design Rational 
+    5. Design 철학 : Design Rationale 
         - 정답인 디자인은 없다. 
         - 문제 주 원인, 그를 해결할 가설 -> 디자인 
     
@@ -154,8 +160,88 @@ A+을 받아보자
         - DBMS interfaces는 바이트 단위가 아닌 Block Level(page)에서 읽고 쓰기를 진행한다. (느려서?)
         - Block = Unit of transfer for disk read/write
         - Page = Fixed size contiguous chunk of memory
-    7. 222
-    8. 22
+
 
 
 ## Lecture 5 - DiskFilesBuffers Part2
+
+###  5.1 DATABASE FILES
+
+    1. Unordered Heap Files
+        – keep track of the pages in a file
+        – keep track of free space on pages
+        – keep track of the records on a page
+        - header page를 만들어서 관리하자!
+
+### 5.2 PAGE LAYOUT
+
+
+    1. Page Basics: The Header
+        - 파일과 마찬가지로 헤더를 만들어서 관리 
+        - 다음은 무조건 포함해야 된다.
+            – Number of records
+            – Free space
+            – Maybe a next/last pointer
+            – Bitmaps, Slot Table…
+        
+    2. 고려 사항 : 
+        – Record length (fixed or variable) : 어떤 자료형을 얼마나 쓸 것인지
+            - Fixed : Header에 Bitmap을 사용하여 저장
+            - Variable : Footer에 Slot을 사용하여 저장
+        – Page packing (packed or unpacked) : 삭제로 인한 빈 공간에 대해 재정렬할 것인지
+            - 공간이 더 이상 없을 때 실행하자 (시간이 많이 소요됨)
+
+### 5.3 RECORD LAYOUT
+
+    1. Record Formats
+        - Relational Model
+        - 스키마를 저장하는 다른 테이블 존재 
+        - Goals
+            – 메모리와 디스크에서 저장
+            – 빠른 접근
+
+    2. Fixed Length : system catalog사용 아주 간단
+
+    3. Variable Length : 
+        - 어디까지가 col 정보? :  // 각각의 디자인에 대한 tradeoff(장단점) 철학을 이해하는 것이 중요 
+            - Comma Separated Values (CSV) : ,를 사용하여 구분 
+            - Offset을 만들기 (길이 적기)
+            - Header를 아예 만들어 버리기 -> 현재 대부분 사용중 
+
+    
+
+
+## Lecture 6 File Organizations (Files and Index Management)
+
+Review: Indirection 철학은 아주 중요하다. (Data와 그에 대한 Meta-Data)
+
+
+### 6.1 Access Patterns
+
+    1. Add/Remove particular recordId: Easy (Cost?)
+
+    2. Scan: Easy (Cost?)
+
+    3. Find a record?
+        - Given a recordId: (PageId, Slot)?
+        - Matching username = “sarahmanning”?
+
+### 6.2 Cost Model for Analysis
+
+용어 정의 
+
+    • B: The number of data blocks in the file
+    • R: Number of records per block
+    • D: (Average) time to read/write disk block
+
+Heap Files VS Sorted Files
+
+| 비교 대상        | Heap Files      | Sorted Files        |
+| ---------------- | --------------- | ------------------- |
+| Scan all records | B * D           | B * D               |
+| Equality Search  | 0.5* B * D      | (log2B) * D         |
+| Range Search     | B * D           | ((log2B)+pages) * D |
+| Insert           | 2 * D           | ((log2B)+B) * D     |
+| Delete           | (0.5 * B+1) * D | ((log2B)+B) * D     |
+
+
