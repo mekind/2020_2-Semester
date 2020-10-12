@@ -12,3 +12,28 @@ milestone1을 하기 했지만 아직 헷갈리는 부분들이 많이 존재했
 
 다음과 같은 문제점이 있었다고 밝힌다.
 
+
+
+
+---
+
+철학 
+
+1. 하나의 테이블이 file -> 두개의 파일을 여는 경우 생각 x (같은 attribute을 가진 table을 생성할 이유가 없음)
+
+
+
+--- 
+
+Delay Merge에 대한 고찰
+
+시간 복잡도 계산하자 ㄴ
+
+
+freepage
+
+internalpage 모아서 설계 
+
+
+bulk loading? 
+

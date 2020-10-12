@@ -18,6 +18,17 @@ A+을 받아보자
   - [Lecture 6 File Organizations (Files and Index Management)](#lecture-6-file-organizations-files-and-index-management)
     - [6.1 Access Patterns](#61-access-patterns)
     - [6.2 Cost Model for Analysis](#62-cost-model-for-analysis)
+  - [Lecture 7 Static Tree Indexes (Files and Index Management)](#lecture-7-static-tree-indexes-files-and-index-management)
+    - [7.1 INDEX Tree, ISAM](#71-index-tree-isam)
+      - [7.1.1 생각해 볼 점](#711-생각해-볼-점)
+      - [7.1.2 변경 사항](#712-변경-사항)
+      - [7.1.3 특징](#713-특징)
+  - [Lecture 8 Dynamic Tree Indexes (Files and Index Management)](#lecture-8-dynamic-tree-indexes-files-and-index-management)
+    - [8.1 Index Tree, B+ Tree](#81-index-tree-b-tree)
+      - [8.1.1 특징](#811-특징)
+      - [8.1.2 유사한 기능을 하는 구조 : RB-Tree](#812-유사한-기능을-하는-구조--rb-tree)
+      - [8.1.3 자세한 기능](#813-자세한-기능)
+      - [8.2 Bulk Loading : 한 번에 많은 insert](#82-bulk-loading--한-번에-많은-insert)
 
 ## Lecture 1 : Course Overview
 
@@ -114,9 +125,7 @@ A+을 받아보자
 
     7. Database : Data들의 집합체 
         - Unorderd Heap Files
-        - 
 
-    8. 22
 
 
 #### 4.1.2 독립적인 Layer 설계의 장점
@@ -243,5 +252,61 @@ Heap Files VS Sorted Files
 | Range Search     | B * D           | ((log2B)+pages) * D |
 | Insert           | 2 * D           | ((log2B)+B) * D     |
 | Delete           | (0.5 * B+1) * D | ((log2B)+B) * D     |
+
+
+## Lecture 7 Static Tree Indexes (Files and Index Management)
+
+### 7.1 INDEX Tree, ISAM
+
+#### 7.1.1 생각해 볼 점
+
+    slot은 record의 page 내에서 이동은 잘 처리해 주나 page 간의 이동은 어렵다. 
+     
+
+#### 7.1.2 변경 사항
+
+    (PageId, SlotId) -> (PageId, SearchKey)
+
+#### 7.1.3 특징 
+
+    1. Lookup: 여러 operations 가능
+    2. Search Key: 아무 컬럼의 부분 집합
+    3. Data Entries: (k, recordID) -> 자기가 정하는거임
+    4. Many Types: B+-Tree, Hash, R-Tree, GiST, ...
+    5. Modification: 빠른 삽입과 삭제 
+    6. Fan-Out = Branching Factor
+    7. 정적인 data에 대해서는 강하나 삽입, 삭제시 생기는 overflow page로 기능 저하
+
+## Lecture 8 Dynamic Tree Indexes (Files and Index Management)
+
+### 8.1 Index Tree, B+ Tree
+
+     삽입, 삭제시 생기는 overflow page로 기능 저하를 해결하기 위해 고안
+
+     Structure Modification Operaiton(SMO)
+
+#### 8.1.1 특징 
+
+    – Always Balanced
+    – Support efficient insertion & deletion
+    – Both API calls are expensive
+
+#### 8.1.2 유사한 기능을 하는 구조 : RB-Tree
+
+    AVL Tree 보다 rotaion이 적은 구조 (AVL page 변화가 너무 많아 쓰지 않는다.)
+
+    높이가 skewed 되기는 한다.
+
+
+#### 8.1.3 자세한 기능
+
+    이미 코드 분석 과제를 해서 정리 x
+
+    하나 착각한 부분 : delete한다고 꼭 key를 internal node에서 지울 필요 없다.
+
+
+#### 8.2 Bulk Loading : 한 번에 많은 insert 
+
+    split을 적절한 비대칭으로 진행 = order가 차지 않아도 split 진행 
 
 
