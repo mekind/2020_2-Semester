@@ -9,6 +9,18 @@
 | 형법              | 1     | NULL         | NULL         |
 | 사실              | 2     | 한양진로계획 |              |
 
+## 10.20 
+
+- DB Project 2 완료 
+
+- 시프 시험 봄 
+
+해야될 일
+- VisionLeisure Production (10.13 예정)
+- 도커 
+
+
+
 ## 10.10
 
 해야될일
