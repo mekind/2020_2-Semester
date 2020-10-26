@@ -28,7 +28,16 @@ A+을 받아보자
       - [8.1.1 특징](#811-특징)
       - [8.1.2 유사한 기능을 하는 구조 : RB-Tree](#812-유사한-기능을-하는-구조--rb-tree)
       - [8.1.3 자세한 기능](#813-자세한-기능)
-      - [8.2 Bulk Loading : 한 번에 많은 insert](#82-bulk-loading--한-번에-많은-insert)
+    - [8.2 Bulk Loading : 한 번에 많은 insert](#82-bulk-loading--한-번에-많은-insert)
+    - [8.3 Delay merge : ghost record를 남겨 둔다.](#83-delay-merge--ghost-record를-남겨-둔다)
+  - [Lecture 9 Index Files and B+-Tree Refinements](#lecture-9-index-files-and-b-tree-refinements)
+    - [9.1 Search Key: Any Subset of Columns](#91-search-key-any-subset-of-columns)
+    - [9.2 Match Definition](#92-match-definition)
+    - [9.3 Data Entries : How are they stored?](#93-data-entries--how-are-they-stored)
+    - [9.4 Clustered vs Unclustered Index (2,3번에 대해)](#94-clustered-vs-unclustered-index-23번에-대해)
+    - [9.5 B+ Tree Costs](#95-b-tree-costs)
+  - [12. Buffer-Management](#12-buffer-management)
+  - [13. Sorting and Hashing](#13-sorting-and-hashing)
 
 ## Lecture 1 : Course Overview
 
@@ -305,8 +314,75 @@ Heap Files VS Sorted Files
     하나 착각한 부분 : delete한다고 꼭 key를 internal node에서 지울 필요 없다.
 
 
-#### 8.2 Bulk Loading : 한 번에 많은 insert 
+### 8.2 Bulk Loading : 한 번에 많은 insert 
 
     split을 적절한 비대칭으로 진행 = order가 차지 않아도 split 진행 
 
+
+### 8.3 Delay merge : ghost record를 남겨 둔다.
+
+
+## Lecture 9 Index Files and B+-Tree Refinements
+
+### 9.1 Search Key: Any Subset of Columns
+
+    Composite Keys : unique할 수도 있고, 아닐 수도 있고 
+    lexigraphci order 
+
+### 9.2 Match Definition
+
+    Defn: A composite search key on columns (k1, k2, …, kn) “matches” a query if:
+        – The query is a conjunction of clauses of the form ki op <val>
+        – The query contains m >= 0 conjuncts of the form:
+            k1 = <val1> AND k2 = <val2> AND .. AND km = <valm>
+            and at most 1 conjunct of the form:
+            km+1 op <val>, where op is one of {<, >}
+
+
+마지막을 찾고 그 뒤를 더 탐색하지 않아야 한다.
+
+### 9.3 Data Entries : How are they stored?
+
+    1. By value : Acutal data record  
+
+    ---- value와 index 분리 
+    
+    2. By Reference 
+    3. By List of References
+
+
+### 9.4 Clustered vs Unclustered Index (2,3번에 대해)
+
+리프 노드에서의 key의 순서로 record가 저장되어 있는가?
+
+거의 대부분 
+
+    clustered index = primary index
+    unclustered index = secondary index //테이블에 변경이 일어나며 좋지 않음
+
+### 9.5 B+ Tree Costs
+
+
+| 비교 대상        | Heap Files      | Sorted Files        | Clustered Index         |
+| ---------------- | --------------- | ------------------- | ----------------------- |
+| Scan all records | B * D           | B * D               | 3/2 * B*D               |
+| Equality Search  | 0.5* B * D      | (log2B) * D         | logF(1.5B) *D+D         |
+| Range Search     | B * D           | ((log2B)+pages) * D | logF(1.5B) *D+ pages *D |
+| Insert           | 2 * D           | ((log2B)+B) * D     | logF(1.5B) *D+2D        |
+| Delete           | (0.5 * B+1) * D | ((log2B)+B) * D     | logF(1.5B) *D+2D        |
+
+## 12. Buffer-Management
+
+    Buffering for write 
+
+    Caching data
+
+clean page : 변경이 적용된 in memory page
+dirty page : 위와 반대
+
+
+space locality
+time locality
+
+## 13. Sorting and Hashing
 
