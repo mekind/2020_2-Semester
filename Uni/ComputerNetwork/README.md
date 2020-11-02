@@ -51,6 +51,11 @@
       - [2.6.1 요구사항](#261-요구사항)
       - [2.6.2 DASH(Dynamic Adaptive Streaming over HTTP)](#262-dashdynamic-adaptive-streaming-over-http)
     - [2.7 Socket programming with UDP and TCP](#27-socket-programming-with-udp-and-tcp)
+    - [3.4 Principles of reliable data transfer](#34-principles-of-reliable-data-transfer)
+      - [3.4.1 rdt 1.0](#341-rdt-10)
+      - [3.4.2 rdt 2.0 : Channel with bit errors](#342-rdt-20--channel-with-bit-errors)
+      - [3.4.3 rdt 2.1 : sender, handles ACK/NAK 오류](#343-rdt-21--sender-handles-acknak-오류)
+      - [3.4.4 rdt 3.0 : channels with errors && loss](#344-rdt-30--channels-with-errors--loss)
 
 
 # 컴퓨터 네트워크
@@ -511,4 +516,50 @@ Solution :
 
 
 
- 
+### 3.4 Principles of reliable data transfer
+
+transport layer -> network의 unreliable을 reliable로 바꿈 
+
+rdt_send(data) -> transport layer (send side) -> udt_send() 
+-> rdt_rcv() -> transport layer(receive side) -> deliver_data()
+
+FSM : 설명을 위한 다이어그램(?)
+
+state -> {event causing action} / {action} -> state2
+
+#### 3.4.1 rdt 1.0 
+
+    - sender : wait -> rdt_send() / make_pkt(), udt_send() -> wait
+
+    - receiver : wait -> rdt_rcv() /extract(), deliver_data -> wait
+
+#### 3.4.2 rdt 2.0 : Channel with bit errors
+
+check : checksum to detect bit errors 
+
+recover : resend
+    - acknowledgements(ACKs)
+    - negative acknowledgements (NAKs)
+
+sender : wait -> rdt_send()/ make_pkt(), udt_send() -> wait(ACK/NAK) ->rdc_rcv() && isNAK() / udt_send() -> rdt_rcv() && isACK() / ^(nothing)
+
+receiver : 
+wait -> rdt_rcv() && corrupt()/ udt_send(NAK) -> wait 
+wait -> rdt_rcv() && notcorrupt() -> extract(), deliver_data(), udt_send(ACK) -> wait 
+
+
+
+#### 3.4.3 rdt 2.1 : sender, handles ACK/NAK 오류 
+
+rdt 2.0 fatal flow : ACK/NAK 에 오류가 있을 경우
+
+- 모르겠으면 그냥 다시 보낼까? duplicate 생김
+- sequence number을 패킷에 저장하자. -> 중복이면 버려
+
+state 증가 -> seq 증가 
+
+#### 3.4.4 rdt 3.0 : channels with errors && loss
+
+타이머 추가 
+
+
