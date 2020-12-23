@@ -32,10 +32,6 @@ typedef struct node {// for print
 	pagenum_t key;
 	ptrnode next;
 }node;
-
-// Frame 
-
-typedef stru
 	
 // FUNCTION PROTOTYPES.
 
@@ -83,8 +79,9 @@ int coalesce_pages(pagenum_t n_num, page_t n, pagenum_t neighbor_num,
 	page_t neighbor, int n_index, my_key_t k_prime);
 
 // table
-int open_table(char *pathname);
 
+int open_table_in_memory(char *pathname);
+int close_table_in_memory();
 #endif /*__BPT_H__*/
 
 

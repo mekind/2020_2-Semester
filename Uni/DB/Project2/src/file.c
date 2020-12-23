@@ -57,10 +57,16 @@ void file_write_header_page() {
 	sync();
 }
 
-int open_table_on_disk(char *pathname) {
+int open_table(char *pathname) {
 	table = open(pathname, O_RDWR | O_CREAT, OPEN_MODE);
 	if(table==-1) 
 		perror("open");
 	return table;
 }
 
+int close_table() {
+	int ret = close(table);
+	if (ret == -1) 
+		perror("close");
+	return ret;
+}

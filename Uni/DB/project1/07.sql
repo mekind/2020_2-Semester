@@ -1,0 +1,1 @@
+select name as '트레이너 이름' from Trainer order by hometown;

@@ -82,7 +82,8 @@ void file_write_page_parent(pagenum_t pagenum, pagenum_t * buffer);
 void file_write_header_page();
 
 //table
-int open_table_on_disk(char *pathname);
+int open_table(char *pathname);
+int close_table();
 
 #endif
 

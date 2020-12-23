@@ -703,8 +703,8 @@ int db_delete(my_key_t key) {
 
 //Project2
 
-int open_table(char *pathname) {
-	int ret = open_table_on_disk(pathname);
+int open_table_in_memory(char *pathname) {
+	int ret = open_table(pathname);
 
 	if (ret == -1)
 		return ret;
@@ -725,5 +725,11 @@ int open_table(char *pathname) {
 	printf("%" PRIu64 "      %" PRIu64 "          %" PRIu64 "\n", Header->Number_of_pages, Header->Free_page, Header->Root_page);
 
 	return ret;
+}
+
+int close_table_in_memory() {
+	file_write_header_page();
+	free(Header);
+	close_table();
 }
 

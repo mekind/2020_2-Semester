@@ -37,6 +37,7 @@ int shutdown_db(){
 	
 	free(Buffer);
 	Buffer=NULL;
+	memset(&Table, 0, sizeof(table_t));
 	
 	return SUCCESS;
 }
